@@ -1,1 +1,0 @@
-vn.ambient.commons.memcachedpool2.MemcachedPoolableFactory
