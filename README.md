@@ -6,7 +6,7 @@ Spymemcache is fast, but in some cases we should maintain multi persistent conne
 This project uses common pool 2.0 to create connection pool for spymemcache client. 
 
 
-# Excample
+# Example
 
 See Test package 
 
