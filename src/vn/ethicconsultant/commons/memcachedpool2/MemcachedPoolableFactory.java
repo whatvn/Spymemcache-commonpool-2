@@ -65,6 +65,8 @@ public class MemcachedPoolableFactory implements PooledObjectFactory<MemcachedCl
     @Override
     public boolean validateObject(PooledObject<MemcachedClient> pooledMemcached) {
         final MemcachedClient mc = pooledMemcached.getObject();
+        // we had to get something to make this connection active
+        mc.get("VALIDATINGOBJECTSTEP");
         try {
             if (mc.getAvailableServers().size() > 0) {
                 return true;
