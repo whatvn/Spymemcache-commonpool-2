@@ -1,5 +1,7 @@
 package vn.ethicconsultant.commons.memcachedpool2;
 
+import java.util.HashMap;
+import java.util.Map;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.compat.log.Logger;
 import net.spy.memcached.compat.log.LoggerFactory;
@@ -53,15 +55,35 @@ public class MemcachedPool extends Pool<MemcachedClient> {
         try {
             return super.getResource(); //To change body of generated methods, choose Tools | Templates.
         } catch (Exception ex) {
-            _logger.error("Exception when return broken resource: {}", ex);
+            _logger.error("Exception when get resource from pool: {}", ex);
         }
         return null;
     }
 
+    /* init all connection for the pool
+     * before return to client
+     * otherwise spymemcache only establish a few connections 
+     * time to establish a memcached connetion can casuse application to be 
+     * blocked
+    */ 
+    
+
     @Override
     public void initPool(GenericObjectPoolConfig poolConfig, PooledObjectFactory<MemcachedClient> factory) {
-        super.initPool(poolConfig, factory); //To change body of generated methods, choose Tools | Templates.
+        super.initPool(poolConfig, factory); 
         _logger.info("Initialize Memcache connection pool....");
+        HashMap<Integer, MemcachedClient> clientMap = new HashMap<>();
+        for (int i = 0; i < poolConfig.getMaxTotal(); i++) {
+            _logger.info("Activate conntion id #" + i);
+            MemcachedClient resource = getResource();
+            clientMap.put(i, resource);
+            resource.get("SOMETHINGTOINITIALIZE");
+        }
+        for (Map.Entry<Integer, MemcachedClient> entrySet : clientMap.entrySet()) {
+            Integer key = entrySet.getKey();
+            returnResource(clientMap.get(key));
+        }
+        clientMap.clear();
     }
 
     /**
