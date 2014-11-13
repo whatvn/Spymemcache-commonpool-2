@@ -9,7 +9,8 @@ This project uses common pool 2.0 to create connection pool for spymemcache clie
 # Example
 
 See Test package 
-
+There's a singleton class that's used this connection pool.
+From what I learn when using memcached, all recommend about using spymemcached and its options is included in that example, you should read.
 
 # License
 
