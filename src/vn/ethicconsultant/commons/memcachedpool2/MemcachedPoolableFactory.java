@@ -3,6 +3,7 @@ package vn.ethicconsultant.commons.memcachedpool2;
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.ConnectionFactoryBuilder;
+import net.spy.memcached.DefaultConnectionFactory;
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.MemcachedClient;
 
@@ -28,6 +29,7 @@ public class MemcachedPoolableFactory implements PooledObjectFactory<MemcachedCl
     public void activateObject(PooledObject<MemcachedClient> pooledMemcached)
             throws Exception {
         final MemcachedClient mc = pooledMemcached.getObject();
+        //mc.get("SOMETHINGTOACTIVE");
     }
 
     @Override
@@ -47,13 +49,17 @@ public class MemcachedPoolableFactory implements PooledObjectFactory<MemcachedCl
     @Override
     public PooledObject<MemcachedClient> makeObject() throws Exception {
         String addr = String.format("%s:%s", this.host, this.port);
-        final MemcachedClient mc = new MemcachedClient(new ConnectionFactoryBuilder(new BinaryConnectionFactory(1000, 65536))
+        final MemcachedClient mc = new MemcachedClient(new ConnectionFactoryBuilder(new BinaryConnectionFactory())
                 .setDaemon(true)
+                // when an operation fail, defaut time for spymemcache will wait
+                // until a new operation can be involved is 10s
+                // we changed it to 5s
+                .setOpQueueMaxBlockTime(DefaultConnectionFactory.DEFAULT_OP_QUEUE_MAX_BLOCK_TIME/2)
                 .setFailureMode(FailureMode.Retry)
                 .build(),
                 AddrUtil.getAddresses(addr));
 
-        return new DefaultPooledObject<MemcachedClient>(mc);
+        return new DefaultPooledObject<>(mc);
     }
 
     @Override
@@ -64,10 +70,10 @@ public class MemcachedPoolableFactory implements PooledObjectFactory<MemcachedCl
 
     @Override
     public boolean validateObject(PooledObject<MemcachedClient> pooledMemcached) {
-        final MemcachedClient mc = pooledMemcached.getObject();
         // we had to get something to make this connection active
-        mc.get("VALIDATINGOBJECTSTEP");
+        //mc.get("VALIDATINGOBJECTSTEP");
         try {
+            final MemcachedClient mc = pooledMemcached.getObject();
             if (mc.getAvailableServers().size() > 0) {
                 return true;
             }
