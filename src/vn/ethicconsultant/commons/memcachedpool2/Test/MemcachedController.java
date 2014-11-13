@@ -24,7 +24,17 @@ public class MemcachedController {
         memcachedPoolableFactory = new MemcachedPoolableFactory(host, port);
         poolConfig = new GenericObjectPoolConfig();
         // set max connection in the pool
-        poolConfig.setMaxTotal(200);
+        // usually < 20 is enough 
+        poolConfig.setMaxTotal(10);
+        // should setMaxIdle to max connection
+        // to persistent all connections in the pool
+        poolConfig.setMaxIdle(10);
+        /*
+        Never 
+        1.setTestOnBorrow
+        2.setTestOnCreate
+        Those options cause performace decreases about 4x times
+        */
         // set timeout 
         poolConfig.setMaxWaitMillis(500);
         memcachedPool.initPool(poolConfig, memcachedPoolableFactory);
